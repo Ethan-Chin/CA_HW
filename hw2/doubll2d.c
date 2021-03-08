@@ -6,44 +6,7 @@
 #define RIGHT 0x1
 #define UP 0x2
 #define DOWN 0x3
-
-
-/*
-   You can imagine that our 2D linked list is a matrix, which MUST have
-   a shape of rectangular at all time.
-
-   The 2D doubly linked list with 4 elements (2 by 2) is like this:
-
-    head -----------+   NULL              NULL
-                    |    ^                 ^
-                    |    |                 |
-                    v    |                 |
-                  +---------+         +---------+
-    NULL <--------|    1    |<------->|    2    |------> NULL
-                  +---------+         +---------+
-                       ^                   ^
-                       |                   |
-                       v                   v
-                  +---------+         +---------+
-    NULL <--------|    3    |<------->|    4    |------> NULL
-                  +---------+         +---------+
-                       |                 |    ^
-                       |                 |    |
-                       v                 v    +--------- tail
-                      NULL              NULL
-
-    An empty list looks like this:
-
-    head ------> NULL
-    NULL <------ tail
-
-    (If not empty) The head pointer of a list should always point to the
-    upper-left most element, and the tail pointer should always point to the
-    lower-right most element.
-
-    The dim_row and dim_col stores the dimension of the rows and columns (i.e.
-    the number of rows and columns).
-*/
+#define CHECK_LIST
 
 /* Initialize a 2D doubly linked list. */
 void doubll2d_init(doubll2d *list)
@@ -181,6 +144,41 @@ static void doubll2d_elem_link(doubll2d_elem* alpha, int alpha_direction, doubll
     }
 }
 
+
+/*
+ * Check if the cursor is in the list. When CHECK_LIST is defined, it will be executed inside some functions
+ */
+static bool check_list(doubll2d *list, doubll2d_elem *cursor)
+{
+    /*
+     * build a double traversal to check every element if it is cursor
+     */
+    size_t i, j;
+    doubll2d_elem *row_flag, *col_flag;
+
+    /*
+     * make sure that the list is not empty
+     */
+    if (list == NULL) return false;
+
+    row_flag = list->head;
+    for (i = 0; i < list->dim_row; i++) {
+        /*
+         * From the left-up to right-down
+         */
+        col_flag = row_flag;
+        for (j = 0; j < list->dim_col; j++) {
+            if (cursor == col_flag) return true;
+            col_flag = col_flag->right;
+        }
+        /*
+         * everytime we check a row in the outer for-loop
+         */
+        row_flag = row_flag->down;
+    }
+    return false;
+}
+
 /* Insert a new row in the list below the row where the given `cursor` locates.
    The given `data` should be **copied** to the newly created elements.
    The `length` is the number of data pointers given to you.
@@ -201,10 +199,14 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
                                    void **data, size_t *size, size_t length)
 {
     /*
-     * Set a flag used to traversal
+     * Set two flags to let us know where is the beginning, used in traversals
      */
     doubll2d_elem* flag_elem1 = cursor;
     doubll2d_elem* flag_elem2;
+
+    /*
+     * A variable to temporarily store new generated elems
+     */
     doubll2d_elem* temp_item;
 
     int i;
@@ -220,19 +222,25 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     if ((length < list->dim_col) | (length == 0)) return NULL;
 
     /*
-     * Firstly, find the start element in the row that cursor located
+     * Firstly, find the beginning element in the row that cursor located
      */
     while (flag_elem1->left != NULL) flag_elem1 = flag_elem1->left;
     flag_elem2 = flag_elem1;
 
 
     /*
-     * From the start elem to the end elem, dock a new elem to every elem in that row
+     * From the beginning elem to the ending elem, dock a new elem to every elem in that row
+     * if there is already another row below the new generated elems, then remember to dock it too
      */
     i = 0;
     while (flag_elem1 != NULL)
     {
+        /*
+         * Generate new elems
+         */
         temp_item = doubll2d_elem_create(data[i], size[i]);
+
+
         if (flag_elem1->down != NULL) doubll2d_elem_link(flag_elem1->down, UP, temp_item);
         doubll2d_elem_link(flag_elem1, DOWN, temp_item);
 
@@ -243,15 +251,30 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
         i++;
     }
 
-
+    /*
+     * make sure the new row is tightly connected inside
+     */
     while (flag_elem2->right != NULL)
     {
         doubll2d_elem_link(flag_elem2->down, RIGHT, flag_elem2->right->down);
         flag_elem2 = flag_elem2->right;
     }
 
+    /*
+     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     */
+    #ifdef CHECK_LIST
+        if (check_list(list, cursor) == false) return NULL;
+    #endif
 
+    /*
+     * Remember to update dim_row
+     */
     list->dim_row++;
+
+    /*
+     * return the elems downward the cursor
+     */
     return cursor->down;
 }
 
@@ -272,7 +295,87 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
    If the marco CHECK_LIST is not set, your code shall not perform that check
    but rather run very fast. */
 doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
-                                   void **data, size_t *size, size_t length);
+                                   void **data, size_t *size, size_t length)
+{
+    /*
+ * Set two flags to let us know where is the beginning, used in traversals
+ */
+    doubll2d_elem* flag_elem1 = cursor;
+    doubll2d_elem* flag_elem2;
+
+    /*
+     * A variable to temporarily store new generated elems
+     */
+    doubll2d_elem* temp_item;
+
+    int i;
+
+    /*
+     * In case the list or the cursor is a NULL pointer
+     */
+    if ((list == NULL) | (cursor == NULL)) return NULL;
+
+    /*
+     * To check if the length is large enough to form a row
+     */
+    if ((length < list->dim_row) | (length == 0)) return NULL;
+
+    /*
+     * Firstly, find the beginning element in the col that cursor located
+     */
+    while (flag_elem1->up != NULL) flag_elem1 = flag_elem1->up;
+    flag_elem2 = flag_elem1;
+
+
+    /*
+     * From the beginning elem to the ending elem, dock a new elem to every elem in that col
+     * if there is already another col besides the new generated elems, then remember to dock it too
+     */
+    i = 0;
+    while (flag_elem1 != NULL)
+    {
+        /*
+         * Generate new elems
+         */
+        temp_item = doubll2d_elem_create(data[i], size[i]);
+
+
+        if (flag_elem1->right != NULL) doubll2d_elem_link(flag_elem1->right, LEFT, temp_item);
+        doubll2d_elem_link(flag_elem1, RIGHT, temp_item);
+
+        /*
+         * move the flag
+         */
+        flag_elem1 = flag_elem1->down;
+        i++;
+    }
+
+    /*
+     * make sure the new col is tightly connected inside
+     */
+    while (flag_elem2->down != NULL)
+    {
+    doubll2d_elem_link(flag_elem2->right, DOWN, flag_elem2->down->right);
+        flag_elem2 = flag_elem2->down;
+    }
+
+    /*
+     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     */
+    #ifdef CHECK_LIST
+        if (check_list(list, cursor) == false) return NULL;
+    #endif
+
+    /*
+     * Remember to update dim_col
+     */
+    list->dim_col++;
+
+    /*
+     * return the elems downward the cursor
+     */
+    return cursor->right;
+}
 
 /* Delete the row where the given `cursor` locates and returns the element above
    the given `cursor`. If the first row is deleted, then return the element
@@ -334,6 +437,7 @@ int main()
 
     int** data_line1 = (int**) malloc(0x12*sizeof(int*));
     doubll2d_elem* line1[12];
+    doubll2d_elem* ser;
     int** data_line2 = (int**) malloc(0x14*sizeof(int*));
     size_t size[14] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
     int i;
@@ -362,9 +466,10 @@ int main()
         *data_line2[i] = 10000+i*i;
     }
 
-    doubll2d_insert_row(list, line1[2], (void**)data_line2, size, 14);
+    ser = doubll2d_insert_row(list, line1[2], (void**)data_line2, size, 14);
 
     print_list_for_int(list);
+    printf("%d\n", *(int*)ser->data);
 
     return 0;
 }
