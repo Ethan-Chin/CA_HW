@@ -209,12 +209,12 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     /*
      * In case the list or the cursor is a NULL pointer
      */
-    if (list == NULL | cursor == NULL) return NULL;
+    if ((list == NULL) | (cursor == NULL)) return NULL;
 
     /*
      * To check if the length is large enough to form a row
      */
-    if (length < list->dim_col | length == 0) return NULL;
+    if ((length < list->dim_col) | (length == 0)) return NULL;
 
     /*
      * Firstly, find the start element in the row that cursor located
