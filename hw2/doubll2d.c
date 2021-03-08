@@ -6,7 +6,9 @@
 #define RIGHT 0x1
 #define UP 0x2
 #define DOWN 0x3
+
 #define CHECK_LIST
+
 
 /* Initialize a 2D doubly linked list. */
 void doubll2d_init(doubll2d *list)
@@ -216,6 +218,15 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
      */
     if ((list == NULL) | (cursor == NULL)) return NULL;
 
+
+    /*
+     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     */
+    #ifdef CHECK_LIST
+        if (check_list(list, cursor) == false) return NULL;
+    #endif
+
+
     /*
      * To check if the length is large enough to form a row
      */
@@ -261,11 +272,10 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     }
 
     /*
-     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     * To check if we need to update the tail
      */
-    #ifdef CHECK_LIST
-        if (check_list(list, cursor) == false) return NULL;
-    #endif
+    if (flag_elem2->down == NULL) list->tail = flag_elem2;
+
 
     /*
      * Remember to update dim_row
@@ -316,6 +326,13 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
     if ((list == NULL) | (cursor == NULL)) return NULL;
 
     /*
+     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     */
+    #ifdef CHECK_LIST
+        if (check_list(list, cursor) == false) return NULL;
+    #endif
+
+    /*
      * To check if the length is large enough to form a row
      */
     if ((length < list->dim_row) | (length == 0)) return NULL;
@@ -360,11 +377,10 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
     }
 
     /*
-     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     * To check if we need to update the tail
      */
-    #ifdef CHECK_LIST
-        if (check_list(list, cursor) == false) return NULL;
-    #endif
+    if (flag_elem2->right == NULL) list->tail = flag_elem2;
+
 
     /*
      * Remember to update dim_col
@@ -386,7 +402,122 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
    actually a member of the list. If not, abort and return NULL. This check is slow.
    If the marco CHECK_LIST is not set, your code shall not perform that check
    but rather run very fast. */
-doubll2d_elem *doubll2d_delete_row(doubll2d *list, doubll2d_elem *cursor);
+doubll2d_elem *doubll2d_delete_row(doubll2d *list, doubll2d_elem *cursor)
+{
+    /*
+     * Set two flags to let us know where is the beginning, used in traversals
+     */
+    doubll2d_elem* flag_elem1 = cursor;
+    doubll2d_elem* flag_elem2;
+
+
+    /*
+     * A variable to temporarily store return elems
+     */
+    doubll2d_elem* return_target;
+
+
+    /*
+     * In case the list or the cursor is a NULL pointer
+     */
+    if ((list == NULL) | (cursor == NULL)) return NULL;
+
+    /*
+     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     */
+    #ifdef CHECK_LIST
+        if (check_list(list, cursor) == false) return NULL;
+    #endif
+
+
+    /*
+     * Firstly, find the beginning element in the row that cursor located
+     */
+    while (flag_elem1->left != NULL) flag_elem1 = flag_elem1->left;
+    flag_elem2 = flag_elem1;
+
+
+    /*
+     * Classify several cases
+     */
+    if (cursor->up != NULL && cursor->down != NULL)
+    {
+        /*
+         * If the above elems exists, then we should return it
+         */
+        return_target = cursor->up;
+    }
+    else if (cursor->up != NULL && cursor->down == NULL)
+    {
+        /*
+         * If the above elems exists, then we should return it
+         * And if the below is NULL, then update the tail
+         */
+        return_target = cursor->up;
+        list->tail = list->tail->up;
+    }
+    else if (cursor->up == NULL && cursor->down != NULL)
+    {
+        /*
+         * If the above elems does not exist, but the below, then we should return the below elems
+         * And if the above is NULL, then update the head
+         */
+        return_target = cursor->down;
+        list->head = list->head->down;
+    }
+    else
+    {
+        /*
+         * If both do not exist, then we should return NULL and update head and tail to be NULL
+         */
+        return_target = NULL;
+        list->head = NULL;
+        list->tail = NULL;
+    }
+
+    /*
+     * From the beginning elem to the ending elem, delete every element in that row
+     * in different cases, do different operations such that the list can keep a connected inside
+     */
+    while (flag_elem1 != NULL)
+    {
+        /*
+         * move the 1st flag first so we won't loss the target
+         */
+        flag_elem1 = flag_elem1->right;
+
+        if (flag_elem2->up != NULL && flag_elem2->down != NULL) doubll2d_elem_link(flag_elem2->up, DOWN, flag_elem2->down);
+        else if (flag_elem2->up != NULL && flag_elem2->down == NULL) flag_elem2->up->down = NULL;
+        else if (flag_elem2->up == NULL && flag_elem2->down != NULL) flag_elem2->down->up = NULL;
+
+        /*
+         * noticed that we need to free the data also
+         */
+        free(flag_elem2->data);
+        free(flag_elem2);
+
+        /*
+         * move the 2nd flag so that we can do further deletion
+         */
+        flag_elem2 = flag_elem1;
+    }
+
+
+    /*
+     * Remember to update dim_row
+     */
+    list->dim_row--;
+
+    /*
+     * Check if the list is empty
+     */
+    if (list->head == NULL) list->dim_col = 0;
+
+    /*
+     * return the elems properly
+     */
+    return return_target;
+}
 
 /* Delete the column where the given `cursor` locates and returns the element
    before the given `cursor`. If the first column is deleted, then return the
@@ -397,17 +528,166 @@ doubll2d_elem *doubll2d_delete_row(doubll2d *list, doubll2d_elem *cursor);
    actually a member of the list. If not, abort and return NULL. This check is slow.
    If the marco CHECK_LIST is not set, your code shall not perform that check
    but rather run very fast. */
-doubll2d_elem *doubll2d_delete_col(doubll2d *list, doubll2d_elem *cursor);
+doubll2d_elem *doubll2d_delete_col(doubll2d *list, doubll2d_elem *cursor)
+{
+    /*
+     * Set two flags to let us know where is the beginning, used in traversals
+     */
+    doubll2d_elem* flag_elem1 = cursor;
+    doubll2d_elem* flag_elem2;
+
+
+    /*
+     * A variable to temporarily store return elems
+     */
+    doubll2d_elem* return_target;
+
+
+    /*
+     * In case the list or the cursor is a NULL pointer
+     */
+    if ((list == NULL) | (cursor == NULL)) return NULL;
+
+    /*
+     * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
+     */
+    #ifdef CHECK_LIST
+        if (check_list(list, cursor) == false) return NULL;
+    #endif
+
+
+    /*
+     * Firstly, find the beginning element in the col that cursor located
+     */
+    while (flag_elem1->up != NULL) flag_elem1 = flag_elem1->up;
+    flag_elem2 = flag_elem1;
+
+
+    /*
+     * Classify several cases
+     */
+    if (cursor->left != NULL && cursor->right != NULL)
+    {
+        /*
+         * If the left elems exists, then we should return it
+         */
+        return_target = cursor->left;
+    }
+    else if (cursor->left != NULL && cursor->right == NULL)
+    {
+        /*
+         * If the left elems exists, then we should return it
+         * And if the right is NULL, then update the tail
+         */
+        return_target = cursor->left;
+        list->tail = list->tail->left;
+    }
+    else if (cursor->left == NULL && cursor->right != NULL)
+    {
+        /*
+         * If the left elems does not exist, but the right, then we should return the right elems
+         * And if the left is NULL, then update the head
+         */
+        return_target = cursor->right;
+        list->head = list->head->right;
+    }
+    else
+    {
+        /*
+         * If both do not exist, then we should return NULL and update head and tail to be NULL
+         */
+        return_target = NULL;
+        list->head = NULL;
+        list->tail = NULL;
+    }
+
+    /*
+     * From the beginning elem to the ending elem, delete every element in that col
+     * in different cases, do different operations such that the list can keep a connected inside
+     */
+    while (flag_elem1 != NULL)
+    {
+        /*
+         * move the 1st flag first so we won't loss the target
+         */
+        flag_elem1 = flag_elem1->down;
+
+        if (flag_elem2->left != NULL && flag_elem2->right != NULL) doubll2d_elem_link(flag_elem2->left, RIGHT, flag_elem2->right);
+        else if (flag_elem2->left != NULL && flag_elem2->right == NULL) flag_elem2->left->right = NULL;
+        else if (flag_elem2->left == NULL && flag_elem2->right != NULL) flag_elem2->right->left = NULL;
+
+        /*
+         * noticed that we need to free the data also
+         */
+        free(flag_elem2->data);
+        free(flag_elem2);
+
+        /*
+         * move the 2nd flag so that we can do further deletion
+         */
+        flag_elem2 = flag_elem1;
+    }
+
+
+    /*
+     * Remember to update dim_col
+     */
+    list->dim_col--;
+
+    /*
+     * Check if the list is empty
+     */
+    if (list->head == NULL) list->dim_row = 0;
+
+    /*
+     * return the elems properly
+     */
+    return return_target;
+}
+
 
 /*  Purge all items from the list. */
-void doubll2d_purge(doubll2d *list);
+void doubll2d_purge(doubll2d *list)
+{
+    /*
+     * Check if it is NULL
+     */
+    if (list == NULL) return;
+
+    /*
+     * Call multiple times of 'doubll2d_delete_row', until the dim_row == 0
+     */
+    while (list->dim_row != 0) doubll2d_delete_row(list, list->head);
+}
 
 
 /* Use the given `less` function to find the maximum element in the whole list.
    If there are multiple maximum elements, return any one of them.
    When the 2D linked list is empty, return NULL.
  */
-doubll2d_elem *doubll2d_find_max(doubll2d *list, list_less_func *less);
+doubll2d_elem *doubll2d_find_max(doubll2d *list, list_less_func *less)
+{
+    size_t i, j;
+    doubll2d_elem *row_flag, *col_flag, *max;
+
+    if (list == NULL) return NULL;
+
+    row_flag = list->head;
+    max = list->head;
+
+    for (i = 0; i < list->dim_row; i++) {
+        col_flag = row_flag;
+        for (j = 0; j < list->dim_col; j++) {
+            if
+            col_flag = col_flag->right;
+        }
+        printf("\n");
+        row_flag = row_flag->down;
+    }
+
+
+    return NULL;
+}
 
 /* Use the given `less` function to find the minimum element in the whole list.
    If there are multiple minimum elements, return any one of them.
@@ -417,14 +697,14 @@ doubll2d_elem *doubll2d_find_min(doubll2d *list, list_less_func *less);
 
 static void print_list_for_int(doubll2d *list)
 {
-    int i, j;
+    size_t i, j;
     doubll2d_elem *row_flag, *col_flag;
     if (list == NULL) return;
     row_flag = list->head;
 
-    for (i = 0; i < (int)list->dim_row; i++) {
+    for (i = 0; i < list->dim_row; i++) {
         col_flag = row_flag;
-        for (j = 0; j < (int)list->dim_col; j++) {
+        for (j = 0; j < list->dim_col; j++) {
             printf("%d ", *(int*)(col_flag->data));
             col_flag = col_flag->right;
         }
@@ -434,7 +714,7 @@ static void print_list_for_int(doubll2d *list)
 }
 int main()
 {
-
+/*
     int** data_line1 = (int**) malloc(0x12*sizeof(int*));
     doubll2d_elem* line1[12];
     doubll2d_elem* ser;
@@ -470,6 +750,68 @@ int main()
 
     print_list_for_int(list);
     printf("%d\n", *(int*)ser->data);
+******************************************************************************************/
+
+
+    int** data_line1 = (int**) malloc(0x12*sizeof(int*));
+    doubll2d_elem* line1[12];
+    doubll2d_elem* ser;
+    doubll2d_elem* ser1;
+    doubll2d_elem* ser2;
+    int** data_line2 = (int**) malloc(0x14*sizeof(int*));
+    size_t size[14] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
+    int i;
+
+    int** data_col = (int**) malloc(0x14*sizeof(int*));
+
+    doubll2d* list = (doubll2d*) malloc(sizeof(doubll2d));
+
+
+
+    for (i = 0; i < 12; i++) {
+        data_line1[i] = (int*) malloc(sizeof(int));
+    }
+    for (i = 0; i < 12; i++) {
+        *data_line1[i] = i*i;
+        line1[i] = doubll2d_elem_create(data_line1[i], sizeof(int));
+    }
+    for (i = 0; i < 11 ; i++) {
+        doubll2d_elem_link(line1[i], RIGHT, line1[i+1]);
+    }
+    doubll2d_init(list);
+    list->head = line1[0];
+    list->tail = line1[11];
+    list->dim_col = 12;
+    list->dim_row = 1;
+
+    for (i = 0; i < 14; i++) {
+        data_line2[i] = (int*) malloc(sizeof(int));
+        data_col[i] = (int*) malloc(sizeof(int));
+    }
+    for (i = 0; i < 14; i++) {
+        *data_line2[i] = 10000+i*i;
+        *data_col[i] = 998+i;
+    }
+
+
+    ser = doubll2d_insert_row(list, line1[2], (void**)data_line2, size, 14);
+    ser1 = doubll2d_insert_col(list, line1[11]->down, (void**)data_col, size, 14);
+
+    print_list_for_int(list);
+    printf("%d\n", *(int*)ser->data);
+    printf("%d\n", *(int*)ser1->data);
+
+    ser2 = doubll2d_delete_col(list, line1[3]->down);
+    print_list_for_int(list);
+    printf("%d\n", *(int*)ser2->data);
+
+    doubll2d_purge(list);
+    print_list_for_int(list);
+
+    printf("%d\n", list->head==NULL);
+    printf("%d\n", list->tail==NULL);
+    printf("%d\n", list->dim_row==0);
+    printf("%d\n", list->dim_col==0);
 
     return 0;
 }

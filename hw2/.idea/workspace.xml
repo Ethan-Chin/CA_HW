@@ -38,6 +38,7 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
@@ -47,11 +48,6 @@
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunManager">
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="doubll2d.o" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
       <makefile filename="$PROJECT_DIR$/Makefile" target="doubll2d.o" workingDirectory="" arguments="">
         <envs />
@@ -73,7 +69,9 @@
       <option name="presentableId" value="Default" />
       <updated>1615197623288</updated>
       <workItem from="1615197624500" duration="1854000" />
-      <workItem from="1615211675490" duration="3552000" />
+      <workItem from="1615211675490" duration="11339000" />
+      <workItem from="1615224577247" duration="4000" />
+      <workItem from="1615224800241" duration="6000" />
     </task>
     <servers />
   </component>
