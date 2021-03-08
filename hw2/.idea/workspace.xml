@@ -44,7 +44,7 @@
     <property name="cf.first.check.clang-format" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="configurable.group.editor" />
+    <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
   </component>
   <component name="RunManager">
     <configuration name="doubll2d.o" type="MAKEFILE_TARGET_RUN_CONFIGURATION" factoryName="Makefile" temporary="true">
@@ -68,6 +68,7 @@
       <option name="presentableId" value="Default" />
       <updated>1615197623288</updated>
       <workItem from="1615197624500" duration="1854000" />
+      <workItem from="1615211675490" duration="574000" />
     </task>
     <servers />
   </component>

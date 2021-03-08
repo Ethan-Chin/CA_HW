@@ -203,8 +203,11 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     /*
      * Set a flag used to traversal
      */
-    doubll2d_elem* flag_elem = cursor;
-    int i = 0;
+    doubll2d_elem* flag_elem1 = cursor;
+    doubll2d_elem* flag_elem2;
+    doubll2d_elem* temp_item;
+
+    int i;
 
     /*
      * In case the list or the cursor is a NULL pointer
@@ -219,21 +222,36 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     /*
      * Firstly, find the start element in the row that cursor located
      */
-    while (flag_elem->left != NULL) flag_elem = flag_elem->left;
+    while (flag_elem1->left != NULL) flag_elem1 = flag_elem1->left;
+    flag_elem2 = flag_elem1;
+
 
     /*
      * From the start elem to the end elem, dock a new elem to every elem in that row
      */
-    while (flag_elem != NULL)
+    i = 0;
+    while (flag_elem1 != NULL)
     {
-        doubll2d_elem_link(flag_elem, DOWN, doubll2d_elem_create(data[i], size[i]));
+        temp_item = doubll2d_elem_create(data[i], size[i]);
+        if (flag_elem1->down != NULL) doubll2d_elem_link(flag_elem1->down, UP, temp_item);
+        doubll2d_elem_link(flag_elem1, DOWN, temp_item);
+
         /*
          * move the flag
          */
-        flag_elem = flag_elem->right;
+        flag_elem1 = flag_elem1->right;
         i++;
     }
 
+
+    while (flag_elem2->right != NULL)
+    {
+        doubll2d_elem_link(flag_elem2->down, RIGHT, flag_elem2->right->down);
+        flag_elem2 = flag_elem2->right;
+    }
+
+
+    list->dim_row++;
     return cursor->down;
 }
 
@@ -294,8 +312,59 @@ doubll2d_elem *doubll2d_find_max(doubll2d *list, list_less_func *less);
  */
 doubll2d_elem *doubll2d_find_min(doubll2d *list, list_less_func *less);
 
+static void print_list_for_int(doubll2d *list)
+{
+    int i, j;
+    doubll2d_elem *row_flag, *col_flag;
+    if (list == NULL) return;
+    row_flag = list->head;
 
+    for (i = 0; i < (int)list->dim_row; i++) {
+        col_flag = row_flag;
+        for (j = 0; j < (int)list->dim_col; j++) {
+            printf("%d ", *(int*)(col_flag->data));
+            col_flag = col_flag->right;
+        }
+        printf("\n");
+        row_flag = row_flag->down;
+    }
+}
 int main()
 {
+
+    int** data_line1 = (int**) malloc(0x12*sizeof(int*));
+    doubll2d_elem* line1[12];
+    int** data_line2 = (int**) malloc(0x14*sizeof(int*));
+    size_t size[14] = {sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int), sizeof(int)};
+    int i;
+    doubll2d* list = (doubll2d*) malloc(sizeof(doubll2d));
+
+    for (i = 0; i < 12; i++) {
+        data_line1[i] = (int*) malloc(sizeof(int));
+    }
+    for (i = 0; i < 12; i++) {
+        *data_line1[i] = i*i;
+        line1[i] = doubll2d_elem_create(data_line1[i], sizeof(int));
+    }
+    for (i = 0; i < 11 ; i++) {
+        doubll2d_elem_link(line1[i], RIGHT, line1[i+1]);
+    }
+    doubll2d_init(list);
+    list->head = line1[0];
+    list->tail = line1[11];
+    list->dim_col = 12;
+    list->dim_row = 1;
+
+    for (i = 0; i < 14; i++) {
+        data_line2[i] = (int*) malloc(sizeof(int));
+    }
+    for (i = 0; i < 14; i++) {
+        *data_line2[i] = 10000+i*i;
+    }
+
+    doubll2d_insert_row(list, line1[2], (void**)data_line2, size, 14);
+
+    print_list_for_int(list);
+
     return 0;
 }
