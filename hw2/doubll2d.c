@@ -214,9 +214,22 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     int i;
 
     /*
-     * In case the list or the cursor is a NULL pointer
+     * In case the list is a NULL pointer
      */
-    if ((list == NULL) | (cursor == NULL)) return NULL;
+    if (list == NULL) return NULL;
+
+
+    /*
+     * In case it is an empty list
+     */
+    if ((list->head == NULL) | (length != 0))
+    {
+        list->head = doubll2d_elem_create(data[0], size[0]);
+        list->tail = list->head;
+        list->dim_row = 1;
+        list->dim_col = 1;
+        return list->head;
+    }
 
 
     /*
@@ -321,9 +334,22 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
     int i;
 
     /*
-     * In case the list or the cursor is a NULL pointer
+     * In case the list is a NULL pointer
      */
-    if ((list == NULL) | (cursor == NULL)) return NULL;
+    if (list == NULL) return NULL;
+
+
+    /*
+     * In case it is an empty list
+     */
+    if ((list->head == NULL) | (length != 0))
+    {
+        list->head = doubll2d_elem_create(data[0], size[0]);
+        list->tail = list->head;
+        list->dim_row = 1;
+        list->dim_col = 1;
+        return list->head;
+    }
 
     /*
      * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
