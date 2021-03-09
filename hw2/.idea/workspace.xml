@@ -12,6 +12,7 @@
     <list default="true" id="7ac8b32d-bfc3-41e1-85d7-f5b909e0a8e5" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/doubll2d.c" beforeDir="false" afterPath="$PROJECT_DIR$/doubll2d.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/doubll2d.h" beforeDir="false" afterPath="$PROJECT_DIR$/doubll2d.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +39,6 @@
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
-    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
@@ -54,11 +54,6 @@
       </makefile>
       <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Makefile.doubll2d.o" />
-      </list>
-    </recent_temporary>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
@@ -68,10 +63,9 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1615197623288</updated>
-      <workItem from="1615197624500" duration="1854000" />
-      <workItem from="1615211675490" duration="11339000" />
-      <workItem from="1615224577247" duration="4000" />
-      <workItem from="1615224800241" duration="6000" />
+      <workItem from="1615197624500" duration="4724000" />
+      <workItem from="1615252273840" duration="201000" />
+      <workItem from="1615252770431" duration="81000" />
     </task>
     <servers />
   </component>

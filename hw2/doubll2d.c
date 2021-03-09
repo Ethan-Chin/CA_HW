@@ -672,28 +672,70 @@ doubll2d_elem *doubll2d_find_max(doubll2d *list, list_less_func *less)
 
     if (list == NULL) return NULL;
 
+    /*
+     * Initialize the max value with the head value
+     */
     row_flag = list->head;
     max = list->head;
+
+    /*
+     * From the left-up to right-down
+     */
 
     for (i = 0; i < list->dim_row; i++) {
         col_flag = row_flag;
         for (j = 0; j < list->dim_col; j++) {
-            if
+            /*
+             * Make use of the *less function (function pointer)
+             */
+            if ((*less)(max, col_flag)) max = col_flag;
             col_flag = col_flag->right;
         }
-        printf("\n");
         row_flag = row_flag->down;
     }
-
-
-    return NULL;
+    /*
+     * This contains the situation that it is empty then return NULL
+     */
+    return max;
 }
 
 /* Use the given `less` function to find the minimum element in the whole list.
    If there are multiple minimum elements, return any one of them.
    When the 2D linked list is empty, return NULL.
  */
-doubll2d_elem *doubll2d_find_min(doubll2d *list, list_less_func *less);
+doubll2d_elem *doubll2d_find_min(doubll2d *list, list_less_func *less)
+{
+    size_t i, j;
+    doubll2d_elem *row_flag, *col_flag, *min;
+
+    if (list == NULL) return NULL;
+
+    /*
+     * Initialize the min value with the head value
+     */
+    row_flag = list->head;
+    min = list->head;
+
+    /*
+     * From the left-up to right-down
+     */
+
+    for (i = 0; i < list->dim_row; i++) {
+        col_flag = row_flag;
+        for (j = 0; j < list->dim_col; j++) {
+            /*
+             * Make use of the *less function (function pointer)
+             */
+            if ((*less)(col_flag, min)) min = col_flag;
+            col_flag = col_flag->right;
+        }
+        row_flag = row_flag->down;
+    }
+    /*
+     * This contains the situation that it is empty then return NULL
+     */
+    return min;
+}
 
 static void print_list_for_int(doubll2d *list)
 {
@@ -712,6 +754,12 @@ static void print_list_for_int(doubll2d *list)
         row_flag = row_flag->down;
     }
 }
+
+static bool less_int123(const doubll2d_elem* alpha, const doubll2d_elem* beta)
+{
+    return (*(int*)(alpha->data) < *(int*)(beta->data));
+}
+
 int main()
 {
 /*
@@ -800,7 +848,7 @@ int main()
     print_list_for_int(list);
     printf("%d\n", *(int*)ser->data);
     printf("%d\n", *(int*)ser1->data);
-
+/*
     ser2 = doubll2d_delete_col(list, line1[3]->down);
     print_list_for_int(list);
     printf("%d\n", *(int*)ser2->data);
@@ -812,6 +860,11 @@ int main()
     printf("%d\n", list->tail==NULL);
     printf("%d\n", list->dim_row==0);
     printf("%d\n", list->dim_col==0);
+*/
+    ser2 = doubll2d_find_min(list, less_int123);
+
+    printf("%d\n", *(int*)ser2->data);
+
 
     return 0;
 }
