@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "doubll2d.h"
 
 #define LEFT 0x0
 #define RIGHT 0x1
 #define UP 0x2
 #define DOWN 0x3
-
-#define CHECK_LIST
 
 
 /* Initialize a 2D doubly linked list. */
@@ -89,9 +88,12 @@ static doubll2d_elem* doubll2d_elem_create(void* data, size_t size)
     /*
      * Set the data and its size by given prams
      */
-    elem->data = data;
+    elem->data = (void*)malloc(size);
+    memcpy(elem->data, data, size);
     elem->size = size;
-
+    /*
+     * return the elem
+     */
     return elem;
 }
 
@@ -150,6 +152,9 @@ static void doubll2d_elem_link(doubll2d_elem* alpha, int alpha_direction, doubll
 /*
  * Check if the cursor is in the list. When CHECK_LIST is defined, it will be executed inside some functions
  */
+
+#ifdef CHECK_LIST
+#define CHECK_LIST_FUNC
 static bool check_list(doubll2d *list, doubll2d_elem *cursor)
 {
     /*
@@ -180,6 +185,7 @@ static bool check_list(doubll2d *list, doubll2d_elem *cursor)
     }
     return false;
 }
+#endif
 
 /* Insert a new row in the list below the row where the given `cursor` locates.
    The given `data` should be **copied** to the newly created elements.
@@ -200,6 +206,7 @@ static bool check_list(doubll2d *list, doubll2d_elem *cursor)
 doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
                                    void **data, size_t *size, size_t length)
 {
+
     /*
      * Set two flags to let us know where is the beginning, used in traversals
      */
@@ -222,10 +229,14 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     /*
      * In case it is an empty list
      */
-    if ((list->head == NULL) | (length != 0))
+    if ((list->head == NULL) && (length != 0))
     {
         list->head = doubll2d_elem_create(data[0], size[0]);
         list->tail = list->head;
+
+        /*
+         * Make sure the size is 1x1
+         */
         list->dim_row = 1;
         list->dim_col = 1;
         return list->head;
@@ -243,7 +254,7 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     /*
      * To check if the length is large enough to form a row
      */
-    if ((length < list->dim_col) | (length == 0)) return NULL;
+    if ((length < list->dim_col) | (length == 0) | (cursor == NULL)) return NULL;
 
     /*
      * Firstly, find the beginning element in the row that cursor located
@@ -287,7 +298,7 @@ doubll2d_elem *doubll2d_insert_row(doubll2d *list, doubll2d_elem *cursor,
     /*
      * To check if we need to update the tail
      */
-    if (flag_elem2->down == NULL) list->tail = flag_elem2;
+    if (flag_elem2->down->down == NULL) list->tail = flag_elem2->down;
 
 
     /*
@@ -342,10 +353,14 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
     /*
      * In case it is an empty list
      */
-    if ((list->head == NULL) | (length != 0))
+    if ((list->head == NULL) && (length != 0))
     {
         list->head = doubll2d_elem_create(data[0], size[0]);
         list->tail = list->head;
+
+        /*
+         * Make sure the size is 1x1
+         */
         list->dim_row = 1;
         list->dim_col = 1;
         return list->head;
@@ -361,7 +376,7 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
     /*
      * To check if the length is large enough to form a row
      */
-    if ((length < list->dim_row) | (length == 0)) return NULL;
+    if ((length < list->dim_row) | (length == 0) | (cursor == NULL)) return NULL;
 
     /*
      * Firstly, find the beginning element in the col that cursor located
@@ -405,7 +420,7 @@ doubll2d_elem *doubll2d_insert_col(doubll2d *list, doubll2d_elem *cursor,
     /*
      * To check if we need to update the tail
      */
-    if (flag_elem2->right == NULL) list->tail = flag_elem2;
+    if (flag_elem2->right->right == NULL) list->tail = flag_elem2->right;
 
 
     /*
@@ -444,9 +459,10 @@ doubll2d_elem *doubll2d_delete_row(doubll2d *list, doubll2d_elem *cursor)
 
 
     /*
-     * In case the list or the cursor is a NULL pointer
+     * In case the list or the cursor is a NULL pointer or the list is empty
      */
     if ((list == NULL) | (cursor == NULL)) return NULL;
+    if (list->head == NULL) return NULL;
 
     /*
      * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
@@ -513,9 +529,11 @@ doubll2d_elem *doubll2d_delete_row(doubll2d *list, doubll2d_elem *cursor)
         flag_elem1 = flag_elem1->right;
 
         if (flag_elem2->up != NULL && flag_elem2->down != NULL) doubll2d_elem_link(flag_elem2->up, DOWN, flag_elem2->down);
+        /*
+         * No need t have 'else' command
+         */
         else if (flag_elem2->up != NULL && flag_elem2->down == NULL) flag_elem2->up->down = NULL;
         else if (flag_elem2->up == NULL && flag_elem2->down != NULL) flag_elem2->down->up = NULL;
-
         /*
          * noticed that we need to free the data also
          */
@@ -570,9 +588,10 @@ doubll2d_elem *doubll2d_delete_col(doubll2d *list, doubll2d_elem *cursor)
 
 
     /*
-     * In case the list or the cursor is a NULL pointer
+     * In case the list or the cursor is a NULL pointer or the list is empty
      */
     if ((list == NULL) | (cursor == NULL)) return NULL;
+    if (list->head == NULL) return NULL;
 
     /*
      * If we set the macro CHECK_LIST, then perform the function to check if the cursor is surely there
@@ -639,6 +658,10 @@ doubll2d_elem *doubll2d_delete_col(doubll2d *list, doubll2d_elem *cursor)
         flag_elem1 = flag_elem1->down;
 
         if (flag_elem2->left != NULL && flag_elem2->right != NULL) doubll2d_elem_link(flag_elem2->left, RIGHT, flag_elem2->right);
+
+            /*
+             * No need t have 'else' command
+             */
         else if (flag_elem2->left != NULL && flag_elem2->right == NULL) flag_elem2->left->right = NULL;
         else if (flag_elem2->left == NULL && flag_elem2->right != NULL) flag_elem2->right->left = NULL;
 
@@ -763,6 +786,26 @@ doubll2d_elem *doubll2d_find_min(doubll2d *list, list_less_func *less)
     return min;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 static void print_list_for_int(doubll2d *list)
 {
     size_t i, j;
@@ -780,15 +823,20 @@ static void print_list_for_int(doubll2d *list)
         row_flag = row_flag->down;
     }
 }
+*/
 
+
+/*
 static bool less_int123(const doubll2d_elem* alpha, const doubll2d_elem* beta)
 {
     return (*(int*)(alpha->data) < *(int*)(beta->data));
 }
+*/
 
-int main()
-{
+
 /*
+ * int main()
+{
     int** data_line1 = (int**) malloc(0x12*sizeof(int*));
     doubll2d_elem* line1[12];
     doubll2d_elem* ser;
@@ -826,7 +874,7 @@ int main()
     printf("%d\n", *(int*)ser->data);
 ******************************************************************************************/
 
-
+/*
     int** data_line1 = (int**) malloc(0x12*sizeof(int*));
     doubll2d_elem* line1[12];
     doubll2d_elem* ser;
@@ -872,9 +920,9 @@ int main()
     ser1 = doubll2d_insert_col(list, line1[11]->down, (void**)data_col, size, 14);
 
     print_list_for_int(list);
-    printf("%d\n", *(int*)ser->data);
-    printf("%d\n", *(int*)ser1->data);
-/*
+    printf("??%d\n", *(int*)ser->data);
+    printf("???%d\n", *(int*)ser1->data);
+
     ser2 = doubll2d_delete_col(list, line1[3]->down);
     print_list_for_int(list);
     printf("%d\n", *(int*)ser2->data);
@@ -886,7 +934,7 @@ int main()
     printf("%d\n", list->tail==NULL);
     printf("%d\n", list->dim_row==0);
     printf("%d\n", list->dim_col==0);
-*/
+
     ser2 = doubll2d_find_min(list, less_int123);
 
     printf("%d\n", *(int*)ser2->data);
@@ -894,3 +942,5 @@ int main()
 
     return 0;
 }
+*/
+

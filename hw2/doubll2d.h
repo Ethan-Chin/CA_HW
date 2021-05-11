@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+
 /* A list element (doubll2d_elem) has pointers to the four elements around it
    (i.e. left, right, up and down). The pointer should point to NULL if the
    neighbor it points to doesn't exist.
