@@ -14,7 +14,7 @@ ShanghaiTech University
 //#include <stdio.h>
 //#include <unistd.h>
 
-#define MAX_THR 56
+#define MAX_THR 20
 
 int step;
 size_t diff_q;
@@ -129,8 +129,8 @@ void blockchain_node_mine(blk_t *node, unsigned char hash_buf[HASH_BLOCK_SIZE],
 
 
     /* Set how many threads we want to use */
-    step = get_nprocs()*2;
-    if (step > MAX_THR) step = MAX_THR;
+    step = 20;
+    // if (step > MAX_THR) step = MAX_THR;
 //    step = 4;
 //    if (diff >10 && diff <= 16) step = 4;
 //    if (diff >16 && diff <= 18) step = 16;
